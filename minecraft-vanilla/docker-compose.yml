@@ -1,0 +1,53 @@
+services:
+  lazytainer:
+    image: ghcr.io/vmorganp/lazytainer:master
+    container_name: lazytainer
+    environment:
+      VERBOSE: false
+    ports:
+      - 25565:25565
+      - 25575:25575
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - lazytainer.group.minecraft.sleepMethod=stop
+      - lazytainer.group.minecraft.ports=25565,25575
+      - lazytainer.group.minecraft.minPacketThreshold=2
+      - lazytainer.group.minecraft.inactiveTimeout=300 # 5 minutes
+    restart: unless-stopped
+    network_mode: bridge
+  minecraft:
+    image: itzg/minecraft-server
+    env_file: .env
+    volumes:
+      - ./minecraft_data:/data
+    labels:
+      - lazytainer.group=minecraft
+    depends_on:
+      - lazytainer
+    network_mode: service:lazytainer
+    tty: true
+    stdin_open: true
+    container_name: minecraft
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+  backups:
+    image: itzg/mc-backup
+    container_name: backups
+    restart: unless-stopped
+    network_mode: service:lazytainer
+    depends_on:
+      minecraft:
+        condition: service_healthy
+    labels:
+      - lazytainer.group=minecraft
+    environment:
+      BACKUP_INTERVAL: "30m"
+      INITIAL_DELAY: 0
+    volumes:
+      - ./minecraft_data:/data:ro
+      - ./mc-backups:/backups
