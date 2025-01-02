@@ -1,0 +1,43 @@
+networks:
+  minecraft-network:
+    driver: bridge    
+    ipam:
+      config:
+        - subnet: 192.168.66.0/24
+
+services:
+  lazymc:
+    container_name: lazymc
+    image: ghcr.io/joesturge/lazymc-docker-proxy:latest
+    networks:
+      minecraft-network:
+        ipv4_address: 192.168.66.2
+    restart: unless-stopped
+    volumes:
+      - ./minecraft_data:/server:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "25565:25565"
+  modpack:
+    container_name: modpack
+    image: itzg/minecraft-server
+    env_file: .env
+    networks:
+      minecraft-network:
+        ipv4_address: 192.168.66.3
+    volumes:
+      - ./minecraft_data:/data
+    labels:
+      - lazymc.enabled=true
+      - lazymc.group=modpack
+      - lazymc.server.address=192.168.66.3:25565
+      - lazymc.public.version=1.21.1
+      - lazymc.public.protocol=767
+      - lazymc.server.forge=true
+      - lazymc.time.sleep_after=300
+      - lazymc.time.minimum_online_time=300
+      - lazymc.server.start_timeout=120
+      - lazymc.server.stop_timeout=30
+    tty: true
+    stdin_open: true
+    restart: no
