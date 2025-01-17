@@ -1,53 +1,42 @@
+networks:
+  minecraft-vanilla-network:
+    driver: bridge    
+    ipam:
+      config:
+        - subnet: 192.169.66.0/24
+
 services:
-  lazytainer:
-    image: ghcr.io/vmorganp/lazytainer:master
-    container_name: lazytainer
-    environment:
-      VERBOSE: false
-    ports:
-      - 25565:25565
-      - 25575:25575
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    labels:
-      - lazytainer.group.minecraft.sleepMethod=stop
-      - lazytainer.group.minecraft.ports=25565,25575
-      - lazytainer.group.minecraft.minPacketThreshold=2
-      - lazytainer.group.minecraft.inactiveTimeout=300 # 5 minutes
+
+  lazymc:
+    container_name: lazymc
+    image: ghcr.io/joesturge/lazymc-docker-proxy:latest
+    networks:
+      minecraft-vanilla-network:
+        ipv4_address: 192.169.66.2
     restart: unless-stopped
-    network_mode: bridge
-  minecraft:
+    volumes:
+      - ./minecraft_data:/server:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "25565:25565"
+  mcvanilla:
+    container_name: mcvanilla
     image: itzg/minecraft-server
     env_file: .env
+    networks:
+      minecraft-vanilla-network:
+        ipv4_address: 192.169.66.3
     volumes:
       - ./minecraft_data:/data
     labels:
-      - lazytainer.group=minecraft
-    depends_on:
-      - lazytainer
-    network_mode: service:lazytainer
+      - lazymc.enabled=true
+      - lazymc.group=mcvanilla
+      - lazymc.server.address=192.168.66.3:25565
+      - lazymc.public.version=1.21.4
+      - lazymc.time.sleep_after=300
+      - lazymc.time.minimum_online_time=300
+      - lazymc.server.start_timeout=60
+      - lazymc.server.stop_timeout=30
     tty: true
     stdin_open: true
-    container_name: minecraft
-    restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "5"
-  backups:
-    image: itzg/mc-backup
-    container_name: backups
-    restart: unless-stopped
-    network_mode: service:lazytainer
-    depends_on:
-      minecraft:
-        condition: service_healthy
-    labels:
-      - lazytainer.group=minecraft
-    environment:
-      BACKUP_INTERVAL: "30m"
-      INITIAL_DELAY: 0
-    volumes:
-      - ./minecraft_data:/data:ro
-      - ./mc-backups:/backups
+    restart: no
