@@ -1,0 +1,12 @@
+services:
+    app:
+        volumes:
+            - ./credentials:/app/credentials
+            - ./instances:/app/instances
+            - ./logs:/app/logs
+            - ./maps:/app/maps
+        environment:
+            - RPP_DISCORD_CLIENT_ID=
+            - RPP_DISCORD_TOKEN=
+        container_name: rpp
+        image: ghcr.io/alexemanuelol/rustplusplus:master
