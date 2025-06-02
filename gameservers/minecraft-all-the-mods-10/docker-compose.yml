@@ -1,0 +1,12 @@
+services:
+  atm10:
+    container_name: atm10
+    image: itzg/minecraft-server
+    env_file: .env
+    ports:
+      - "25565:25565"
+    volumes:
+      - ./minecraft_data:/data
+    tty: true
+    stdin_open: true
+    restart: no
