@@ -1,0 +1,16 @@
+services:
+  valheim:
+    image: ghcr.io/community-valheim-tools/valheim-server
+    # Adjust priority levels on linux
+    cap_add:
+      - sys_nice
+    volumes:
+      - /opt/docker/data/valheim/config:/config
+      - /opt/docker/data/valheim/data:/opt/valheim
+    ports:
+      - "2456-2458:2456-2458/udp"
+      - "9001:9001/tcp"
+    env_file:
+      - ./valheim.env
+    restart: unless-stopped
+    stop_grace_period: 2m

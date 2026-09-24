@@ -1,0 +1,13 @@
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    ports:
+      - 3000:3000
+    volumes:
+      - /opt/docker/data/homepage:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro # (optional) For docker integrations
+      - /mnt/jellyfin-media:/disks/media:ro # for monitoring external jellyfin-media mount
+    environment:
+      HOMEPAGE_ALLOWED_HOSTS: gethomepage.dev,0.0.0.0:3000 # match local ip; extend if routing through reverse proxy
+    restart: unless-stopped

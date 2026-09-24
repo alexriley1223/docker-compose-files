@@ -1,0 +1,39 @@
+services:
+  palworld:
+    image: thijsvanloef/palworld-server-docker:latest
+    restart: unless-stopped
+    container_name: palworld-server
+    stop_grace_period: 30s # Set to however long you are willing to wait for the container to gracefully stop
+    ports:
+      - 8211:8211/udp
+      - 27015:27015/udp
+      - 8212:8212/tcp  # REST API enabled port, enabled by default. DO NOT PORT FORWARD THIS.
+    environment:
+      BACKUP_ENABLED: true
+      BACKUP_CRON_EXPRESSION: "0 * * * *"
+      DELETE_OLD_BACKUPS: true
+      OLD_BACKUP_DAYS: 5
+      AUTO_REBOOT_CRON_EXPRESSION: "0 */8 * * *"
+      AUTO_REBOOT_ENABLED: true
+      AUTO_PAUSE_ENABLED: true
+      # DISCORD_WEBHOOK_URL: "https://discord.com/api/webhooks/....."
+      DISCORD_PRE_BACKUP_DELETE_MESSAGE_ENABLED: false
+      DISCORD_POST_BACKUP_DELETE_MESSAGE_ENABLED: false
+      DISCORD_ERR_BACKUP_DELETE_MESSAGE_ENABLED: false
+      DISCORD_POST_BACKUP_MESSAGE_ENABLED: false
+      DISCORD_PRE_BACKUP_MESSAGE_ENABLED: false
+      PUID: 1000
+      PGID: 1000
+      PORT: 8211 # Optional but recommended
+      PLAYERS: 8 # Optional but recommended
+      SERVER_PASSWORD: "password" # Optional but recommended
+      REST_API_ENABLED: true
+      REST_API_PORT: 8212
+      TZ: "UTC"
+      ADMIN_PASSWORD: "password"
+      COMMUNITY: true  # Enable this if you want your server to show up in the community servers tab, USE WITH SERVER_PASSWORD!
+      SERVER_NAME: "Palworld Server"
+      SERVER_DESCRIPTION: "Palworld Server Description"
+      CROSSPLAY_PLATFORMS: "(Steam,Xbox)"
+    volumes:
+      - ./palworld:/palworld/
